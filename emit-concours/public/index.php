@@ -14,7 +14,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
-            background: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+            background: url('assets/img/bgImage.jpg') no-repeat center center fixed;
             background-size: cover;
         }
         .overlay {

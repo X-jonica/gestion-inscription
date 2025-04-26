@@ -80,5 +80,29 @@ class Inscription {
         $stmt = $db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public static function search($searchTerm, $statutFilter = null) {
+        $db = Database::getConnection();
+        
+        $sql = 'SELECT i.*, 
+                c.nom as candidat_nom, c.prenom as candidat_prenom,
+                co.mention as concours_mention
+                FROM Inscriptions i
+                JOIN Candidats c ON i.candidat_id = c.id
+                JOIN Concours co ON i.concours_id = co.id
+                WHERE (c.nom LIKE :search OR c.prenom LIKE :search OR co.mention LIKE :search)';
+        
+        $params = ['search' => '%'.$searchTerm.'%'];
+        
+        if ($statutFilter) {
+            $sql .= ' AND i.statut = :statut';
+            $params['statut'] = $statutFilter;
+        }
+        
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

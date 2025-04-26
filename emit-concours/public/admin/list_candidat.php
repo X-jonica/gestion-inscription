@@ -7,8 +7,11 @@ if (!isset($_SESSION['admin'])) {
 require_once __DIR__ . '/../../src/config/database.php';
 require_once __DIR__ . '/../../src/models/Candidat.php';
 
-// Récupérer tous les candidats
-$candidats = Candidat::getAll($pdo);
+// Récupérer le terme de recherche
+$searchTerm = $_GET['search'] ?? '';
+
+// Récupérer les candidats avec filtre de recherche
+$candidats = Candidat::search($searchTerm);
 
 // Traitement de la suppression
 if (isset($_GET['delete'])) {
@@ -25,6 +28,7 @@ if (isset($_GET['delete'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Liste des Candidats</title>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -66,6 +70,7 @@ if (isset($_GET['delete'])) {
         .main-content {
             margin-left: 250px;
             padding: 2rem;
+            width: calc(100% - 250px);
         }
         
         .page-header {
@@ -73,23 +78,52 @@ if (isset($_GET['delete'])) {
             margin-bottom: 2rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
         
         .table-container {
             background-color: white;
             border-radius: 0.5rem;
             box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-            padding: 1.5rem;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .table {
+            margin-bottom: 0;
+            width: 100%;
         }
         
         .table thead th {
             border-top: none;
             border-bottom: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
         }
         
         .badge-payment {
-            padding: 0.35em 0.65em;
+            padding: 0.5em 0.8em;
             font-size: 0.75em;
+            font-weight: 600;
+            border-radius: 10px;
         }
         
         .badge-yes {
@@ -106,12 +140,34 @@ if (isset($_GET['delete'])) {
             white-space: nowrap;
         }
         
+        .btn-sm {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
         /* Style pour le modal */
         .modal-detail-item {
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
         }
         .modal-detail-label {
             font-weight: 600;
+            color: #6c757d;
+        }
+        
+        /* Style pour la recherche */
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box .form-control {
+            padding-left: 2.5rem;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-80%);
             color: #6c757d;
         }
     </style>
@@ -132,55 +188,76 @@ if (isset($_GET['delete'])) {
         
         <!-- Main content -->
         <div class="main-content">
-            <h1 class="page-header">Liste des Candidats</h1>
+            <h1 class="page-header">
+                <span>Liste des Candidats</span>
+            </h1>
             
-            <div class="table-container">
+            <!-- Formulaire de recherche -->
+            <div class="search-container">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-12 search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Rechercher par nom ou prénom..." 
+                               value="<?= htmlspecialchars($searchTerm) ?>">
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Tableau des candidats -->
+            <div class="table-container mx-auto" style="">
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="thead-light">
+                    <table class="table table-hover table-sm">
+                        <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Nom</th>
                                 <th>Prénom</th>
                                 <th>Email</th>
                                 <th>Téléphone</th>
-                                <th>Type_Bac</th>
-                                <th>Année_Bac</th>
+                                <th class="text-nowrap">Type Bac</th>
+                                <th class="text-nowrap">Année Bac</th>
                                 <th>Paiement</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($candidats as $candidat): ?>
-                            <tr>
-                                <td><?= $candidat['id'] ?></td>
-                                <td><?= htmlspecialchars($candidat['nom']) ?></td>
-                                <td><?= htmlspecialchars($candidat['prenom']) ?></td>
-                                <td><?= htmlspecialchars($candidat['email']) ?></td>
-                                <td><?= htmlspecialchars($candidat['telephone']) ?></td>
-                                <td><?= htmlspecialchars($candidat['type_bacc']) ?></td>
-                                <td><?= htmlspecialchars($candidat['annee_bacc']) ?></td>
-                                <td>
-                                    <span class="badge badge-payment <?= $candidat['recu_paiement'] ? 'badge-yes' : 'badge-no' ?>">
-                                        <?= $candidat['recu_paiement'] ? 'Oui' : 'Non' ?>
-                                    </span>
-                                </td>
-                                <td class="action-btns">
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
-                                            data-bs-target="#candidatModal" 
-                                            data-id="<?= $candidat['id'] ?>"
-                                            data-nom="<?= htmlspecialchars($candidat['nom']) ?>"
-                                            data-prenom="<?= htmlspecialchars($candidat['prenom']) ?>"
-                                            data-email="<?= htmlspecialchars($candidat['email']) ?>"
-                                            data-telephone="<?= htmlspecialchars($candidat['telephone']) ?>"
-                                            data-type_bacc="<?= htmlspecialchars($candidat['type_bacc']) ?>"
-                                            data-annee_bacc="<?= htmlspecialchars($candidat['annee_bacc']) ?>"
-                                            data-paiement="<?= $candidat['recu_paiement'] ? 'Oui' : 'Non' ?>">
-                                        Voir
-                                    </button>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+                            <?php if (empty($candidats)): ?>
+                                <tr>
+                                    <td colspan="9" class="text-center py-4">Aucun candidat trouvé</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($candidats as $candidat): ?>
+                                <tr>
+                                    <td><?= $candidat['id'] ?></td>
+                                    <td><?= htmlspecialchars($candidat['nom']) ?></td>
+                                    <td><?= htmlspecialchars($candidat['prenom']) ?></td>
+                                    <td><?= htmlspecialchars($candidat['email']) ?></td>
+                                    <td><?= htmlspecialchars($candidat['telephone']) ?></td>
+                                    <td><?= htmlspecialchars($candidat['type_bacc']) ?></td>
+                                    <td><?= htmlspecialchars($candidat['annee_bacc']) ?></td>
+                                    <td>
+                                        <span class="badge badge-payment <?= $candidat['recu_paiement'] ? 'badge-yes' : 'badge-no' ?>">
+                                            <?= $candidat['recu_paiement'] ? 'Oui' : 'Non' ?>
+                                        </span>
+                                    </td>
+                                    <td class="action-btns">
+                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                                data-bs-target="#candidatModal" 
+                                                data-id="<?= $candidat['id'] ?>"
+                                                data-nom="<?= htmlspecialchars($candidat['nom']) ?>"
+                                                data-prenom="<?= htmlspecialchars($candidat['prenom']) ?>"
+                                                data-email="<?= htmlspecialchars($candidat['email']) ?>"
+                                                data-telephone="<?= htmlspecialchars($candidat['telephone']) ?>"
+                                                data-type_bacc="<?= htmlspecialchars($candidat['type_bacc']) ?>"
+                                                data-annee_bacc="<?= htmlspecialchars($candidat['annee_bacc']) ?>"
+                                                data-paiement="<?= $candidat['recu_paiement'] ? 'Oui' : 'Non' ?>">
+                                            <i class="fas fa-eye btn-sm"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -197,37 +274,37 @@ if (isset($_GET['delete'])) {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="modal-detail-item">
-                        <span class="modal-detail-label">ID:</span> 
-                        <span id="modal-id"></span>
+                    <div class="mb-3">
+                        <label class="form-label modal-detail-label">ID</label>
+                        <input type="text" class="form-control" id="modal-id" disabled>
                     </div>
-                    <div class="modal-detail-item">
-                        <span class="modal-detail-label">Nom:</span> 
-                        <span id="modal-nom"></span>
+                    <div class="mb-3">
+                        <label class="form-label modal-detail-label">Nom</label>
+                        <input type="text" class="form-control" id="modal-nom" disabled>
                     </div>
-                    <div class="modal-detail-item">
-                        <span class="modal-detail-label">Prénom:</span> 
-                        <span id="modal-prenom"></span>
+                    <div class="mb-3">
+                        <label class="form-label modal-detail-label">Prénom</label>
+                        <input type="text" class="form-control" id="modal-prenom" disabled>
                     </div>
-                    <div class="modal-detail-item">
-                        <span class="modal-detail-label">Email:</span> 
-                        <span id="modal-email"></span>
+                    <div class="mb-3">
+                        <label class="form-label modal-detail-label">Email</label>
+                        <input type="text" class="form-control" id="modal-email" disabled>
                     </div>
-                    <div class="modal-detail-item">
-                        <span class="modal-detail-label">Téléphone:</span> 
-                        <span id="modal-telephone"></span>
+                    <div class="mb-3">
+                        <label class="form-label modal-detail-label">Téléphone</label>
+                        <input type="text" class="form-control" id="modal-telephone" disabled>
                     </div>
-                    <div class="modal-detail-item">
-                        <span class="modal-detail-label">Type Bac:</span> 
-                        <span id="modal-type_bacc"></span>
+                    <div class="mb-3">
+                        <label class="form-label modal-detail-label">Type Bac</label>
+                        <input type="text" class="form-control" id="modal-type_bacc" disabled>
                     </div>
-                    <div class="modal-detail-item">
-                        <span class="modal-detail-label">Année Bac:</span> 
-                        <span id="modal-annee_bacc"></span>
+                    <div class="mb-3">
+                        <label class="form-label modal-detail-label">Année Bac</label>
+                        <input type="text" class="form-control" id="modal-annee_bacc" disabled>
                     </div>
-                    <div class="modal-detail-item">
-                        <span class="modal-detail-label">Paiement reçu:</span> 
-                        <span id="modal-paiement"></span>
+                    <div class="mb-3">
+                        <label class="form-label modal-detail-label">Paiement reçu</label>
+                        <input type="text" class="form-control" id="modal-paiement" disabled>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -245,15 +322,15 @@ if (isset($_GET['delete'])) {
             candidatModal.addEventListener('show.bs.modal', function(event) {
                 var button = event.relatedTarget;
                 
-                // Récupérer les données des attributs data-*
-                document.getElementById('modal-id').textContent = button.getAttribute('data-id');
-                document.getElementById('modal-nom').textContent = button.getAttribute('data-nom');
-                document.getElementById('modal-prenom').textContent = button.getAttribute('data-prenom');
-                document.getElementById('modal-email').textContent = button.getAttribute('data-email');
-                document.getElementById('modal-telephone').textContent = button.getAttribute('data-telephone');
-                document.getElementById('modal-type_bacc').textContent = button.getAttribute('data-type_bacc');
-                document.getElementById('modal-annee_bacc').textContent = button.getAttribute('data-annee_bacc');
-                document.getElementById('modal-paiement').textContent = button.getAttribute('data-paiement');
+                // Remplir les champs du formulaire
+                document.getElementById('modal-id').value = button.getAttribute('data-id');
+                document.getElementById('modal-nom').value = button.getAttribute('data-nom');
+                document.getElementById('modal-prenom').value = button.getAttribute('data-prenom');
+                document.getElementById('modal-email').value = button.getAttribute('data-email');
+                document.getElementById('modal-telephone').value = button.getAttribute('data-telephone');
+                document.getElementById('modal-type_bacc').value = button.getAttribute('data-type_bacc');
+                document.getElementById('modal-annee_bacc').value = button.getAttribute('data-annee_bacc');
+                document.getElementById('modal-paiement').value = button.getAttribute('data-paiement');
                 
                 // Mettre à jour le titre du modal
                 document.getElementById('candidatModalLabel').textContent = 
@@ -261,15 +338,14 @@ if (isset($_GET['delete'])) {
             });
         });
 
-         // deconnexion
-         document.getElementById('logoutLink').addEventListener('click', function(e) {
+        // deconnexion
+        document.getElementById('logoutLink').addEventListener('click', function(e) {
             e.preventDefault();
             const confirmLogout = confirm("Voulez-vous vraiment vous déconnecter ?");
             if (confirmLogout) {
                 window.location.href = "logout.php";
             }
         });
-
     </script>
 </body>
 </html>

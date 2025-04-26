@@ -94,5 +94,20 @@ class Candidat {
         $stmt = $db->prepare($sql);
         $stmt->execute(['id' => $id]);
     }
+
+        // Méthode pour chercher des candidats par mot-clé (nom, prénom ou email)
+    public static function search($keyword) {
+        $db = Database::getConnection();
+        $sql = "SELECT * FROM Candidats 
+                WHERE nom LIKE :keyword 
+                OR prenom LIKE :keyword 
+                OR email LIKE :keyword";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([
+            'keyword' => '%' . $keyword . '%'
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }
 ?>

@@ -107,38 +107,50 @@ $concours = Concours::getAll($pdo);
         
         <!-- Content area -->
         <div class="main-content">
-            <h1 class="welcome-header">Bienvenue, <?= htmlspecialchars($admin['nom']) ?></h1>
+            <h2 class="welcome-header">Bienvenue, vous etes connecté en tant qu'Administrateur , <?= htmlspecialchars($admin['nom']) ?></h2>
             
-            <div class="row">
+            <div class="row g-4 ">  
                 <!-- Card Candidats -->
                 <div class="col-md-4">
-                    <div class="card dashboard-card">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Candidats</h5>
-                            <div class="card-count"><?= count($candidat) ?></div>
-                            <a href="list_candidat.php" class="btn btn-primary mt-2">Voir la liste</a>
+                    <div class="card dashboard-card h-100 border-0 shadow-sm">  
+                        <div class="card-body text-center p-4 d-flex flex-column">  
+                            <h5 class="card-title text-primary mb-3">
+                                Candidats 
+                            </h5>
+                            <div class="card-count display-5 fw-bold text-dark mb-3"><?= count($candidat) ?></div>  
+                            <a href="list_candidat.php" class="btn btn-primary mt-auto align-self-center">  
+                                Voir la liste  
+                            </a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Card Inscriptions -->
                 <div class="col-md-4">
-                    <div class="card dashboard-card">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Inscriptions</h5>
-                            <div class="card-count"><?= count($inscriptions) ?></div>
-                            <a href="list_inscriptions.php" class="btn btn-success mt-2">Voir la liste</a>
+                    <div class="card dashboard-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4 d-flex flex-column">
+                            <h5 class="card-title text-success mb-3">
+                                Inscriptions
+                            </h5>
+                            <div class="card-count display-5 fw-bold text-dark mb-3"><?= count($inscriptions) ?></div>
+                            <a href="list_inscriptions.php" class="btn btn-success mt-auto align-self-center">
+                                 Voir la liste
+                            </a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Card Concours -->
                 <div class="col-md-4">
-                    <div class="card dashboard-card">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Concours</h5>
-                            <div class="card-count"><?= count($concours) ?></div>
-                            <a href="list_concours.php" class="btn btn-info mt-2">Voir la liste</a>
+                    <div class="card dashboard-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4 d-flex flex-column">
+                            <h5 class="card-title text-info mb-3">
+                                Concours
+                            </h5>
+                            <div class="card-count display-5 fw-bold text-dark mb-3"><?= count($concours) ?></div>
+                            <a href="list_concours.php" class="btn btn-info mt-auto align-self-center">
+                                Voir la liste
+                            </a>
                         </div>
                     </div>
                 </div>

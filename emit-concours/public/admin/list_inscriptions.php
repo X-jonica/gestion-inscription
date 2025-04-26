@@ -9,8 +9,12 @@ require_once __DIR__ . '/../../src/models/Inscriptions.php';
 require_once __DIR__ . '/../../src/models/Candidat.php';
 require_once __DIR__ . '/../../src/models/Concours.php';
 
-// Récupérer toutes les inscriptions avec les infos des candidats et concours
-$inscriptions = Inscription::getAllWithDetails($pdo);
+// Récupérer les paramètres de recherche
+$searchTerm = $_GET['search'] ?? '';
+$statusFilter = $_GET['status'] ?? '';
+
+// Récupérer les inscriptions avec filtres
+$inscriptions = Inscription::search($searchTerm, $statusFilter);
 
 // Traitement de la mise à jour du statut
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
@@ -35,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Liste des Inscriptions</title>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -76,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         .main-content {
             margin-left: 250px;
             padding: 2rem;
+            width: calc(100% - 250px);
         }
         
         .page-header {
@@ -83,24 +89,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
             margin-bottom: 2rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
         
         .table-container {
             background-color: white;
             border-radius: 0.5rem;
             box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-            padding: 1.5rem;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .table {
+            margin-bottom: 0;
+            width: 100%;
         }
         
         .table thead th {
             border-top: none;
             border-bottom: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
         }
         
         .badge-statut {
-            padding: 0.35em 0.65em;
+            padding: 0.5em 0.8em;
             font-size: 0.75em;
             font-weight: 600;
+            border-radius: 10px;
         }
         
         .badge-attente {
@@ -122,6 +156,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
             white-space: nowrap;
         }
         
+        .btn-sm {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
         /* Style pour le modal */
         .modal-detail-item {
             margin-bottom: 1rem;
@@ -133,6 +172,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         .form-control:disabled {
             background-color: #f8f9fa;
             border-color: #e9ecef;
+        }
+        
+        /* Style pour la recherche */
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box .form-control {
+            padding-left: 2.5rem;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .status-filter {
+            min-width: 180px;
         }
     </style>
 </head>
@@ -152,57 +212,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         
         <!-- Main content -->
         <div class="main-content">
-            <h1 class="page-header">Liste des Inscriptions</h1>
+            <h1 class="page-header">
+                <span>Liste des Inscriptions</span>
+            </h1>
             
+            <!-- Formulaire de recherche et filtre -->
+            <div class="search-container">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-8 search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Rechercher par nom, prénom ou concours..." 
+                               value="<?= htmlspecialchars($searchTerm) ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select status-filter">
+                            <option value="">Tous les statuts</option>
+                            <option value="en_attente" <?= $statusFilter === 'en attente' ? 'selected' : '' ?>>En attente</option>
+                            <option value="validé" <?= $statusFilter === 'validé' ? 'selected' : '' ?>>Validé</option>
+                            <option value="rejeté" <?= $statusFilter === 'rejeté' ? 'selected' : '' ?>>Rejeté</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Tableau des inscriptions -->
             <div class="table-container">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="thead-light">
+                <div class="table-responsive ">
+                    <table class="table table-hover table-sm">
+                        <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Candidat</th>
                                 <th>Concours</th>
-                                <th>Date Inscription</th>
+                                <th class="text-nowrap">Date Inscription</th>
                                 <th>Statut</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($inscriptions as $inscription): ?>
-                            <tr>
-                                <td><?= $inscription['id'] ?></td>
-                                <td>
-                                    <?= htmlspecialchars($inscription['candidat_nom']) ?> 
-                                    <?= htmlspecialchars($inscription['candidat_prenom']) ?>
-                                </td>
-                                <td><?= htmlspecialchars($inscription['concours_mention']) ?></td>
-                                <td><?= htmlspecialchars($inscription['date_inscription']) ?></td>
-                                <td>
-                                    <?php 
-                                    $badgeClass = '';
-                                    switch($inscription['statut']) {
-                                        case 'validé': $badgeClass = 'badge-valide'; break;
-                                        case 'rejeté': $badgeClass = 'badge-rejete'; break;
-                                        default : $badgeClass = 'badge-attente';
-                                    }
-                                    ?>
-                                    <span class="badge badge-statut <?= $badgeClass ?>">
-                                        <?= htmlspecialchars($inscription['statut']) ?>
-                                    </span>
-                                </td>
-                                <td class="action-btns">
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
-                                            data-bs-target="#inscriptionModal" 
-                                            data-id="<?= $inscription['id'] ?>"
-                                            data-candidat="<?= htmlspecialchars($inscription['candidat_nom'].' '.$inscription['candidat_prenom']) ?>"
-                                            data-concours="<?= htmlspecialchars($inscription['concours_mention']) ?>"
-                                            data-date="<?= htmlspecialchars($inscription['date_inscription']) ?>"
-                                            data-statut="<?= htmlspecialchars($inscription['statut']) ?>">
-                                        Modifier
-                                    </button>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+                            <?php if (empty($inscriptions)): ?>
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">Aucune inscription trouvée</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($inscriptions as $inscription): ?>
+                                <tr>
+                                    <td><?= $inscription['id'] ?></td>
+                                    <td>
+                                        <?= htmlspecialchars($inscription['candidat_nom']) ?> 
+                                        <?= htmlspecialchars($inscription['candidat_prenom']) ?>
+                                    </td>
+                                    <td><?= htmlspecialchars($inscription['concours_mention']) ?></td>
+                                    <td><?= date('d/m/Y H:i', strtotime($inscription['date_inscription'])) ?></td>
+                                    <td>
+                                        <?php 
+                                        $badgeClass = '';
+                                        switch($inscription['statut']) {
+                                            case 'validé': $badgeClass = 'badge-valide'; break;
+                                            case 'rejeté': $badgeClass = 'badge-rejete'; break;
+                                            default : $badgeClass = 'badge-attente';
+                                        }
+                                        ?>
+                                        <span class="badge badge-statut <?= $badgeClass ?>">
+                                            <?= htmlspecialchars($inscription['statut']) ?>
+                                        </span>
+                                    </td>
+                                    <td class="action-btns">
+                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                                data-bs-target="#inscriptionModal" 
+                                                data-id="<?= $inscription['id'] ?>"
+                                                data-candidat="<?= htmlspecialchars($inscription['candidat_nom'].' '.$inscription['candidat_prenom']) ?>"
+                                                data-concours="<?= htmlspecialchars($inscription['concours_mention']) ?>"
+                                                data-date="<?= htmlspecialchars($inscription['date_inscription']) ?>"
+                                                data-statut="<?= htmlspecialchars($inscription['statut']) ?>">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -286,15 +380,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
             });
         });
 
-         // deconnexion
-         document.getElementById('logoutLink').addEventListener('click', function(e) {
+        // deconnexion
+        document.getElementById('logoutLink').addEventListener('click', function(e) {
             e.preventDefault();
             const confirmLogout = confirm("Voulez-vous vraiment vous déconnecter ?");
             if (confirmLogout) {
                 window.location.href = "logout.php";
             }
         });
-
     </script>
 </body>
 </html>
