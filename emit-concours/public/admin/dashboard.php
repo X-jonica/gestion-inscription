@@ -107,7 +107,7 @@ $concours = Concours::getAll($pdo);
         
         <!-- Content area -->
         <div class="main-content">
-            <h2 class="welcome-header">Bienvenue, vous etes connecté en tant qu'Administrateur , <?= htmlspecialchars($admin['nom']) ?></h2>
+            <h2 class="welcome-header">Bienvenue, vous etes connecté en tant qu'Administrateur 😎 , <strong><?= htmlspecialchars($admin['nom']) ?></strong></h2>
             
             <div class="row g-4 ">  
                 <!-- Card Candidats -->
