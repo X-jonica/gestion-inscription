@@ -25,104 +25,7 @@ if (isset($_GET['delete'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Concours Disponibles</title>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .sidebar {
-            width: 250px;
-            background: #343a40;
-            color: white;
-            position: fixed;
-            height: 100vh;
-        }
-        
-        .sidebar-brand {
-            padding: 1.5rem;
-            font-size: 1.2rem;
-            font-weight: 600;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .sidebar-nav {
-            padding: 1rem 0;
-        }
-        
-        .sidebar-nav a {
-            color: rgba(255,255,255,0.8);
-            padding: 0.75rem 1.5rem;
-            display: block;
-            text-decoration: none;
-        }
-        
-        .sidebar-nav a:hover {
-            color: white;
-            background: rgba(255,255,255,0.1);
-        }
-        
-        .main-content {
-            margin-left: 250px;
-            padding: 2rem;
-        }
-        
-        .page-header {
-            color: #495057;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .table-container {
-            background-color: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-            padding: 1.5rem;
-        }
-        
-        .table thead th {
-            border-top: none;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .badge-statut {
-            padding: 0.35em 0.65em;
-            font-size: 0.75em;
-            font-weight: 600;
-        }
-        
-        .badge-ouvert {
-            background-color: #28a745;
-            color: white;
-        }
-        
-        .badge-ferme {
-            background-color: #dc3545;
-            color: white;
-        }
-        
-        .action-btns {
-            white-space: nowrap;
-        }
-        
-        /* Style pour le modal */
-        .modal-detail-item {
-            margin-bottom: 0.8rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .modal-detail-label {
-            font-weight: 600;
-            color: #6c757d;
-            display: inline-block;
-            width: 120px;
-        }
-        .modal-title {
-            color: #4e73df;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/list_concours.css">
 </head>
 <body>
     <div class="d-flex">
@@ -217,40 +120,8 @@ if (isset($_GET['delete'])) {
         </div>
     </div>
 
+    <!-- importer les fichiers js -->
     <script src="../assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Script pour remplir le modal avec les données du concours
-        document.addEventListener('DOMContentLoaded', function() {
-            var concoursModal = document.getElementById('concoursModal');
-            concoursModal.addEventListener('show.bs.modal', function(event) {
-                var button = event.relatedTarget;
-                
-                // Récupérer les données des attributs data-*
-                document.getElementById('modal-id').textContent = button.getAttribute('data-id');
-                document.getElementById('modal-mention').textContent = button.getAttribute('data-mention');
-                document.getElementById('modal-date').textContent = button.getAttribute('data-date');
-                
-                // Gestion du statut avec badge coloré
-                var statut = button.getAttribute('data-statut');
-                var statutBadge = document.getElementById('modal-statut');
-                statutBadge.textContent = statut;
-                statutBadge.className = 'badge badge-statut ' + (statut === 'ouvert' ? 'badge-ouvert' : 'badge-ferme');
-                
-                // Mettre à jour le titre du modal
-                document.getElementById('concoursModalLabel').textContent = 
-                    'Concours: ' + button.getAttribute('data-mention');
-            });
-        });
-
-         // deconnexion
-         document.getElementById('logoutLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            const confirmLogout = confirm("Voulez-vous vraiment vous déconnecter ?");
-            if (confirmLogout) {
-                window.location.href = "logout.php";
-            }
-        });
-
-    </script>
+    <script src="../assets/js/list_concours.js"></script>
 </body>
 </html>

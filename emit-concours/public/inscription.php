@@ -495,5 +495,8 @@ $concours = Concours::getAll();
             <a href="index.php" class="back-link">← Retour à l'accueil</a>
         </div>
     </div>
+
+    <!-- script pour appeler le inscription.js -->
+    <script src="/assets/js/inscription.js"></script>
 </body>
 </html>

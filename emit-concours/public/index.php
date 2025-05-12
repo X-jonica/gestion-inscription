@@ -76,5 +76,8 @@
             <a href="admin/login.php">Se connecter</a>
         </div>
     </div>
+
+    <!-- script pour appeler le index.js -->
+    <script src="/assets/js/index.js"></script>
 </body>
 </html>
