@@ -4,14 +4,37 @@ if (!isset($_SESSION['admin'])) {
     header('Location: login.php');
     exit;
 }
+
+// Inclure les deux classes nécessaires
 require_once __DIR__ . '/../../src/config/database.php';
 require_once __DIR__ . '/../../src/models/Candidat.php';
+require_once __DIR__ . '/../../src/models/Inscriptions.php';
 
 // Récupérer le terme de recherche
 $searchTerm = $_GET['search'] ?? '';
 
-// Récupérer les candidats avec filtre de recherche
-$candidats = Candidat::search($searchTerm);
+// 1. Récupérer toutes les inscriptions validées
+$inscriptionsValides = Inscription::search('', 'validé');
+
+// 2. Récupérer les candidats correspondants
+$candidatsValides = [];
+foreach ($inscriptionsValides as $inscription) {
+    $candidat = Candidat::getById($inscription['candidat_id']);
+    if ($candidat) {
+        // Ajouter le statut de l'inscription au candidat si besoin
+        $candidat['statut_inscription'] = $inscription['statut'];
+        $candidatsValides[] = $candidat;
+    }
+}
+
+// 3. Filtrer selon le terme de recherche
+if (!empty($searchTerm)) {
+    $candidatsValides = array_filter($candidatsValides, function($candidat) use ($searchTerm) {
+        return stripos($candidat['nom'], $searchTerm) !== false || 
+               stripos($candidat['prenom'], $searchTerm) !== false || 
+               stripos($candidat['email'], $searchTerm) !== false;
+    });
+}
 
 // Traitement de la suppression
 if (isset($_GET['delete'])) {
@@ -50,14 +73,20 @@ if (isset($_GET['delete'])) {
                 <span>Liste des Candidats</span>
             </h1>
             
+            <!-- Message d'information -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                Seuls les candidats dont l'inscription a été validée et qui participeront au concours sont affichés ici.
+            </div>
+            
             <!-- Formulaire de recherche -->
             <div class="search-container">
                 <form method="GET" class="row g-3">
                     <div class="col-md-12 search-box">
                         <i class="fas fa-search"></i>
                         <input type="text" name="search" class="form-control" 
-                               placeholder="Rechercher par nom ou prénom..." 
-                               value="<?= htmlspecialchars($searchTerm) ?>">
+                            placeholder="Rechercher par nom, prénom ou email..." 
+                            value="<?= htmlspecialchars($searchTerm) ?>">
                     </div>
                 </form>
             </div>
@@ -80,12 +109,12 @@ if (isset($_GET['delete'])) {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (empty($candidats)): ?>
+                            <?php if (empty($candidatsValides)): ?>
                                 <tr>
-                                    <td colspan="9" class="text-center py-4">Aucun candidat trouvé</td>
+                                    <td colspan="9" class="text-center py-4">Aucun candidat validé trouvé</td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($candidats as $candidat): ?>
+                                <?php foreach ($candidatsValides as $candidat): ?>
                                 <tr>
                                     <td><?= $candidat['id'] ?></td>
                                     <td><?= htmlspecialchars($candidat['nom']) ?></td>
@@ -110,7 +139,7 @@ if (isset($_GET['delete'])) {
                                                 data-type_bacc="<?= htmlspecialchars($candidat['type_bacc']) ?>"
                                                 data-annee_bacc="<?= htmlspecialchars($candidat['annee_bacc']) ?>"
                                                 data-paiement="<?= $candidat['recu_paiement'] ? 'Oui' : 'Non' ?>">
-                                            <i class="fas fa-eye btn-sm"></i>
+                                            <i class="fas fa-eye btn-sm">voir</i>
                                         </button>
                                     </td>
                                 </tr>
