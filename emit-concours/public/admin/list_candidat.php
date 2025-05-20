@@ -52,18 +52,31 @@ if (isset($_GET['delete'])) {
     <title>Liste des Candidats</title>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/list_candidat.css">
+    <link rel="stylesheet" href="../assets/css/sidebar.css">
 </head>
 <body>
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar">
-            <div class="sidebar-brand">Admin Dashboard</div>
+            <div class="sidebar-brand">
+                <span class="sidebar-icon">📊</span> Admin Dashboard
+            </div>
             <nav class="sidebar-nav">
-                <a href="dashboard.php">Accueil</a>
-                <a href="list_candidat.php">Candidats</a>
-                <a href="list_inscriptions.php">Inscriptions</a>
-                <a href="list_concours.php">Concours</a>
-                <a href="logout.php" id="logoutLink">Déconnexion</a>
+                <a href="dashboard.php">
+                    <span class="sidebar-icon">🏠</span> Accueil
+                </a>
+                <a href="list_candidat.php">
+                    <span class="sidebar-icon">👥</span> Candidats
+                </a>
+                <a href="list_inscriptions.php">
+                    <span class="sidebar-icon">📝</span> Inscriptions
+                </a>
+                <a href="list_concours.php">
+                    <span class="sidebar-icon">🏆</span> Concours
+                </a>
+                <a href="logout.php" id="logoutLink">
+                    <span class="sidebar-icon">🚪</span> Déconnexion
+                </a>
             </nav>
         </div>
         
